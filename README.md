@@ -20,6 +20,8 @@
 - **OpenAI API**
 - **Newtonsoft.Json** (for JSON handling)
 
+---
+
 ## 🛠️ Setup Instructions
 
 1. **Clone this repository:**
@@ -43,7 +45,11 @@
 
 ---
 
-## ✨ Example Prompt
+## ✨ Current Project: GPTCommand
+
+**GPTColorChange** is the main project demonstrating natural language control of Unity objects material colors.
+
+### Example Usage
 
 When calling:
 ```csharp
@@ -59,6 +65,12 @@ The GPT response might return:
 ```
 
 Unity will then automatically color those boxes accordingly.
+
+### Key Features
+- Parse natural language commands into actionable Unity operations
+- Real-time object manipulation through AI interpretation
+- JSON-based response handling for structured data
+- Seamless integration with Unity's component system
 
 ---
 
@@ -77,6 +89,9 @@ Make sure not to commit your `APIKey.txt` to version control. Add this to your `
 - Object spawning and destruction via prompts
 - GPT-generated dialogue systems
 - Chatbot-style in-game NPCs
+- Multi-object batch operations
+- Scene management through natural language
+- AI-driven procedural content generation
 
 ---
 
