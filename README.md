@@ -1,7 +1,4 @@
 
----
-
-````markdown
 # Unity-AI-Sandbox
 
 **Unity-AI-Sandbox** is a collection of experimental projects that explore the integration of Artificial Intelligence (AI) with the Unity game engine. It includes prototypes demonstrating how AI models like OpenAI's GPT can be used to drive interactivity, generate behavior, and enhance game development workflows.
@@ -125,7 +122,3 @@ Make sure not to commit your `APIKey.txt` to version control. Add this to your `
 ## 📄 License
 
 This project is licensed under the MIT License. See LICENSE for more details.
-
-```
-
----
