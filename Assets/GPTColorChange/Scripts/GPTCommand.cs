@@ -67,10 +67,10 @@ public class GPTCommand : MonoBehaviour
                 Debug.Log("Response: " + response);
 
                 // Extracts only the JSON portion from the API response
-                string extractedJson = ExtractJSON(response);
+                string extractedJson = Utility.ExtractJSON(response);
 
                 // Applies the extracted colors to the corresponding GameObjects
-                ApplyColors(extractedJson);
+                Utility.ApplyColors(extractedJson);
             }
             else
             {
@@ -78,72 +78,5 @@ public class GPTCommand : MonoBehaviour
                 Debug.LogError("OpenAI API Error: " + request.error);
             }
         }
-    }
-
-    // Parses a JSON string and applies the specified hex color to each named GameObject
-    void ApplyColors(string jsonString)
-    {
-        try
-        {
-            var colorMap = JObject.Parse(jsonString);
-            foreach (var pair in colorMap)
-            {
-                string boxName = pair.Key;
-                string hexColor = pair.Value.ToString();
-
-                // Finds the GameObject with the specified name
-                GameObject box = GameObject.Find(boxName);
-
-                if (box != null)
-                {
-                    // Tries to get the Renderer and apply the parsed color
-                    Renderer renderer = box.GetComponent<Renderer>();
-                    if (renderer != null && ColorUtility.TryParseHtmlString(hexColor, out Color color))
-                    {
-                        renderer.material.color = color;
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"Invalid hex color: {hexColor} for {boxName}");
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning($"Box '{boxName}' not found.");
-                }
-            }
-        }
-        catch (System.Exception e)
-        {
-            // Logs if the JSON is invalid or parsing fails
-            Debug.LogError("JSON parsing error: " + e.Message);
-        }
-    }
-
-    // Extracts the actual JSON object (with box-color pairs) from the full ChatGPT response
-    string ExtractJSON(string rawResponse)
-    {
-        try
-        {
-            JObject root = JObject.Parse(rawResponse);
-            string content = root["choices"]?[0]?["message"]?["content"]?.ToString();
-
-            if (content != null)
-            {
-                // Finds the start and end of the JSON object in the string
-                int firstBrace = content.IndexOf('{');
-                int lastBrace = content.LastIndexOf('}');
-                if (firstBrace >= 0 && lastBrace > firstBrace)
-                {
-                    // Returns the substring that represents the JSON object
-                    return content.Substring(firstBrace, lastBrace - firstBrace + 1);
-                }
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Error extracting JSON: " + e.Message);
-        }
-        return "{}"; // Fallback in case of error
     }
 }
