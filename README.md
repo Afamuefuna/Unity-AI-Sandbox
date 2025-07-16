@@ -1,3 +1,6 @@
+
+---
+
 ````markdown
 # Unity-AI-Sandbox
 
@@ -124,3 +127,5 @@ Make sure not to commit your `APIKey.txt` to version control. Add this to your `
 This project is licensed under the MIT License. See LICENSE for more details.
 
 ```
+
+---
