@@ -75,6 +75,13 @@ namespace DrawDash
             {
                 this.result.gameObject.SetActive(true);
                 this.result.scoreText.text =  result;
+                if(int.Parse(result) >= 5)
+                {
+                    this.result.scoreText.color = new Color32(155, 255, 134, 255); // Green
+                }else
+                {
+                    this.result.scoreText.color = new Color32(255, 142, 134, 255); // Red
+                }
                 load.Hide();
             }, onError: (error) =>
             {
