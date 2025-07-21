@@ -22,6 +22,13 @@ Unity-AI-Sandbox is a collection of experimental projects that explore the integ
 
 -----
 
+## 📦 Third-Party Assets & Plugins
+
+  - **Kenney Assets** — Used for various art assets.
+  - **UiRoundedCorners** — A plugin for creating rounded UI elements.
+
+-----
+
 ## 🛠️ Setup Instructions
 
 1.  **Clone this repository:**
