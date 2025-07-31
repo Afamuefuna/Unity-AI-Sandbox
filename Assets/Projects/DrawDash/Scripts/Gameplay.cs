@@ -45,6 +45,8 @@ namespace DrawDash
                 countdown--;
                 this.countdownText.text = "Time left: " + countdown;
             }
+
+            gameManager.EndGame();
         }
     }
 }
