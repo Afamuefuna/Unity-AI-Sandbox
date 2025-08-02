@@ -81,6 +81,34 @@ public static class Utility
         return "{}"; // fallback
     }
 
+    public static int ExtractContentJSONInt(string rawResponse)
+    {
+        try
+        {
+            JObject root = JObject.Parse(rawResponse);
+            string content = root["choices"]?[0]?["message"]?["content"]?.ToString();
+
+            if (content != null)
+            {
+                // Try to parse the content as an integer
+                if (int.TryParse(content, out int result))
+                {
+                    return result;
+                }
+                else
+                {
+                    Debug.LogWarning("Content is not a valid integer: " + content);
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Failed to extract JSON: " + e.Message);
+        }
+
+        return -1;
+    }
+
     public static string ExtractContentJSON(string rawResponse)
     {
         try

@@ -1,99 +1,134 @@
 using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
-using UnityEngine.UI; // Required to use a List
+using UnityEngine.UI;
 
-/// <summary>
-/// This script acts as the bridge between the UI elements and the game logic.
-/// It handles button clicks and updates the UI based on game state changes.
-/// </summary>
 public class UIController : MonoBehaviour
 {
-    [Header("Game Logic")]
-    [Tooltip("Drag the GameObject that has the TicTacToeGame script here.")]
     public GameLogic gameLogic;
-
-    [Header("UI Elements")]
-    [Tooltip("Drag all 9 of your board buttons here, in order from 0 to 8.")]
     public List<Button> boardButtons;
-
-    [Tooltip("Optional: A Text element to display game status like 'Player X Wins!'")]
     public TMP_Text statusText;
-    
-    [Tooltip("Optional: A button to restart the game.")]
     public Button restartButton;
-
+    public Button quitButton;
     public Sprite playerOSprite, playerXSprite;
+    public RectTransform winningLine;
+    GameManager gameManager;
 
-    // Subscribe to events when the script is enabled
     void OnEnable()
     {
         GameLogic.OnMoveMade += HandleMoveMade;
         GameLogic.OnGameWon += HandleGameWon;
         GameLogic.OnGameDraw += HandleGameDraw;
+        AIPlayer.OnAIThinking += HandleAIThinking;
+        GameLogic.OnWinningLine += DrawWinningLine;
     }
 
-    // Unsubscribe from events when the script is disabled to prevent errors
     void OnDisable()
     {
         GameLogic.OnMoveMade -= HandleMoveMade;
         GameLogic.OnGameWon -= HandleGameWon;
         GameLogic.OnGameDraw -= HandleGameDraw;
+        AIPlayer.OnAIThinking -= HandleAIThinking;
+        GameLogic.OnWinningLine -= DrawWinningLine;
     }
 
     void Start()
     {
-        // Add a listener to each board button
+        gameManager = FindObjectOfType<GameManager>();
+
         for (int i = 0; i < boardButtons.Count; i++)
         {
-            int index = i; // Store the index locally for the button's click event
+            int index = i;
             boardButtons[i].onClick.AddListener(() => OnBoardButtonClick(index));
         }
-        
-        // Add a listener to the restart button if it exists
+
         if (restartButton != null)
         {
             restartButton.onClick.AddListener(RestartGame);
         }
 
-        // Set up the initial UI state
+        if (quitButton != null)
+        {
+            quitButton.onClick.AddListener(QuitPlay);
+        }
+
         ResetUI();
     }
 
-    // Called when a board button is clicked
-    private void OnBoardButtonClick(int index)
+    private void DrawWinningLine(int a, int b, int c)
     {
-        // Tell the game logic to make a move at this button's index
-        gameLogic.MakeMove(index);
+        Vector3 posA = boardButtons[a].transform.position;
+        Vector3 posC = boardButtons[c].transform.position;
+
+        Vector3 midPoint = (posA + posC) / 2f;
+        winningLine.position = midPoint;
+
+        float distance = Vector3.Distance(posA, posC);
+        winningLine.sizeDelta = new Vector2(distance, winningLine.sizeDelta.y);
+
+        Vector3 direction = (posC - posA).normalized;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        winningLine.rotation = Quaternion.Euler(0, 0, angle);
+        winningLine.gameObject.SetActive(true);
     }
 
-    // --- EVENT HANDLERS (These methods are called by the game logic) ---
-
-    // Updates the UI when a move is successfully made
-    private void HandleMoveMade(int index, GameLogic.Player player)
-    {
-        // Get the Text component of the button that was clicked
-        Text buttonText = boardButtons[index].GetComponentInChildren<Text>();
-        if (buttonText != null)
-        {
-            buttonText.text = player.ToString(); // Set text to "X" or "O"
-            buttonText.fontSize = 100; // Make it look nice
-        }
-        boardButtons[index].image.sprite = player == GameLogic.Player.O ? playerOSprite : playerXSprite;
-        boardButtons[index].interactable = false; // Disable the button
-    }
-
-    // Updates the UI when a player wins
-    private void HandleGameWon(GameLogic.Player winner)
+    private void HandleAIThinking()
     {
         if (statusText != null)
         {
-            statusText.text = $"Player {winner} Wins!";
+            statusText.text = "AI's Thinking...";
         }
+    }
+
+    private void OnBoardButtonClick(int index)
+    {
+        if (gameLogic.GetCurrentPlayer() == GameLogic.Player.X)
+        {
+            gameLogic.MakeMove(index);
+        }
+    }
+
+    private void HandleMoveMade(int index, GameLogic.Player player)
+    {
+        Text buttonText = boardButtons[index].GetComponentInChildren<Text>();
+        if (buttonText != null)
+        {
+            buttonText.text = player.ToString();
+            buttonText.fontSize = 100;
+        }
+        boardButtons[index].image.sprite = player == GameLogic.Player.O ? playerOSprite : playerXSprite;
+        boardButtons[index].interactable = false;
+
+        if (statusText != null)
+        {
+            if (player == GameLogic.Player.O)
+            {
+                statusText.text = "Your Turn";
+            }
+            else
+            {
+                statusText.text = "AI's Turn";
+            }
+        }
+    }
+
+    private void HandleGameWon(GameLogic.Player winner, int[] winningLine)
+    {
+        if (statusText != null)
+        {
+            if (winner == GameLogic.Player.O)
+            {
+                statusText.text = "AI Wins!";
+            }
+            else
+            {
+                statusText.text = "You Win!";
+            }
+        }
+
         DisableAllBoardButtons();
     }
 
-    // Updates the UI when the game is a draw
     private void HandleGameDraw()
     {
         if (statusText != null)
@@ -102,8 +137,6 @@ public class UIController : MonoBehaviour
         }
         DisableAllBoardButtons();
     }
-    
-    // --- UI MANAGEMENT ---
 
     private void RestartGame()
     {
@@ -111,19 +144,27 @@ public class UIController : MonoBehaviour
         ResetUI();
     }
 
+    private void QuitPlay()
+    {
+        gameManager.QuitPlay();
+    }
+
     private void ResetUI()
     {
-        // Re-enable all buttons and clear their text
         foreach (var button in boardButtons)
         {
             button.interactable = true;
             button.image.sprite = null;
         }
 
-        // Clear the status text
         if (statusText != null)
         {
-            statusText.text = "Player X's Turn"; // Or just ""
+            statusText.text = "Your Turn";
+        }
+
+        if (winningLine != null)
+        {
+            winningLine.gameObject.SetActive(false);
         }
     }
 

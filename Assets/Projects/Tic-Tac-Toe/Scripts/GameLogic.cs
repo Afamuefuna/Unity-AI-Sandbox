@@ -1,75 +1,113 @@
 using UnityEngine;
-using System; // Required for using Actions (events)
+using System;
 
-/// <summary>
-/// Handles the core logic for a Tic-Tac-Toe game.
-/// This class is responsible for the game state, player turns, and win/draw conditions.
-/// It does not handle any UI or player input directly.
-/// </summary>
 public class GameLogic : MonoBehaviour
 {
-    /// <summary>
-    /// Represents the players in the game.
-    /// </summary>
     public enum Player { None, X, O }
-
-    // --- EVENTS ---
-    // Events that other scripts (like a UI manager) can subscribe to.
+    public static event Action<int, int, int> OnWinningLine;
     public static event Action<int, Player> OnMoveMade; // Sends the board index and player who made the move.
-    public static event Action<Player> OnGameWon;      // Sends the winning player.
+    public static event Action<Player, int[]> OnGameWon; // Sends the winning player and winning line indices.
     public static event Action OnGameDraw;             // Signals a draw game.
 
-    // --- GAME STATE ---
     private Player[] board;
     private Player currentPlayer;
     private bool isGameOver;
+    private int[] winningLine; // Store the indices of the winning line
 
-    // --- UNITY LIFECYCLE ---
-    void Start()
-    {
-        StartNewGame();
-    }
-
-    // --- PUBLIC METHODS ---
-
-    /// <summary>
-    /// Starts or restarts the game, resetting the board and player turn.
-    /// </summary>
     public void StartNewGame()
     {
         board = new Player[9]; // Represents the 3x3 grid
         currentPlayer = Player.X; // X always starts
         isGameOver = false;
+        winningLine = null;
 
         Debug.Log("--- New Game Started ---");
         Debug.Log("Player X's turn.");
     }
 
-    /// <summary>
-    /// Attempts to place the current player's mark at the specified board index.
-    /// </summary>
-    /// <param name="index">The board index (0-8) where the player wants to move.</param>
-    /// <returns>True if the move was successful, false otherwise.</returns>
     public bool MakeMove(int index)
     {
-        // Validate the move
+        return ProcessMove(index, currentPlayer);
+    }
+
+    public bool MakeMove(int row, int col)
+    {
+        if (row < 0 || row > 2 || col < 0 || col > 2) return false;
+        int index = row * 3 + col;
+        return MakeMove(index);
+    }
+
+    public bool MakeAIMove(int index)
+    {
+        if (currentPlayer != Player.O)
+        {
+            Debug.LogWarning("MakeAIMove can only be called when it's Player O's turn.");
+            return false;
+        }
+        return ProcessMove(index, Player.O);
+    }
+
+    public Player[] GetBoard()
+    {
+        return (Player[])board.Clone();
+    }
+
+    public Player GetCurrentPlayer()
+    {
+        return currentPlayer;
+    }
+
+    public bool IsGameOver()
+    {
+        return isGameOver;
+    }
+
+    public void SetGameOver(bool value)
+    {
+        isGameOver = value;
+    }
+
+    public int[] GetWinningLine()
+    {
+        return winningLine;
+    }
+
+    public string GetGameStateString()
+    {
+        string state = "Current board state (0-8 positions):\n";
+        for (int i = 0; i < 9; i++)
+        {
+            char symbol = board[i] == Player.X ? 'X' : (board[i] == Player.O ? 'O' : (char)('0' + i));
+            state += symbol;
+            if (i % 3 == 2) state += "\n";
+            else state += " | ";
+        }
+        return state;
+    }
+
+    private bool ProcessMove(int index, Player player)
+    {
         if (isGameOver || index < 0 || index >= board.Length || board[index] != Player.None)
         {
             Debug.LogWarning($"Invalid Move: Cell {index} is not available or game is over.");
             return false;
         }
 
-        // Apply the move
+        if (player != currentPlayer)
+        {
+            Debug.LogWarning($"It's not Player {player}'s turn. Current player is {currentPlayer}.");
+            return false;
+        }
+
         board[index] = currentPlayer;
         Debug.Log($"Player {currentPlayer} placed a mark at index {index}.");
         OnMoveMade?.Invoke(index, currentPlayer);
 
-        // Check for game end conditions
         if (CheckForWin())
         {
             isGameOver = true;
             Debug.Log($"GAME OVER! Player {currentPlayer} wins!");
-            OnGameWon?.Invoke(currentPlayer);
+            OnGameWon?.Invoke(currentPlayer, winningLine);
         }
         else if (CheckForDraw())
         {
@@ -79,25 +117,11 @@ public class GameLogic : MonoBehaviour
         }
         else
         {
-            // If the game is not over, switch to the next player
             SwitchPlayer();
         }
 
         return true;
     }
-
-    /// <summary>
-    /// Overload for MakeMove that accepts row and column.
-    /// </summary>
-    public bool MakeMove(int row, int col)
-    {
-        if (row < 0 || row > 2 || col < 0 || col > 2) return false;
-        int index = row * 3 + col;
-        return MakeMove(index);
-    }
-
-
-    // --- PRIVATE HELPER METHODS ---
 
     private void SwitchPlayer()
     {
@@ -107,7 +131,6 @@ public class GameLogic : MonoBehaviour
 
     private bool CheckForWin()
     {
-        // All 8 possible winning combinations
         int[,] winConditions = new int[,]
         {
             {0, 1, 2}, {3, 4, 5}, {6, 7, 8}, // Rows
@@ -121,11 +144,10 @@ public class GameLogic : MonoBehaviour
             int b = winConditions[i, 1];
             int c = winConditions[i, 2];
 
-            Debug.Log($"Checking win condition: {a}, {b}, {c}");
-
-            // Check if the three cells have the same, non-empty player mark
             if (board[a] != Player.None && board[a] == board[b] && board[a] == board[c])
             {
+                winningLine = new int[] { a, b, c };
+                OnWinningLine?.Invoke(a, b, c); // Fire event with winning indices
                 return true;
             }
         }
@@ -134,7 +156,6 @@ public class GameLogic : MonoBehaviour
 
     private bool CheckForDraw()
     {
-        // If any cell is still empty, it's not a draw yet
         foreach (Player cell in board)
         {
             if (cell == Player.None)
@@ -142,7 +163,6 @@ public class GameLogic : MonoBehaviour
                 return false;
             }
         }
-        // If all cells are filled and CheckForWin() was false, it's a draw
         return true;
     }
 }
