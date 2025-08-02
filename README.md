@@ -50,6 +50,28 @@ Unity-AI-Sandbox is a collection of experimental projects that explore the integ
 
 ## ✨ Current Projects
 
+### ❌⭕ Tic Tac Toe AI Multiplayer
+
+This is a reimagined version of the classic Tic Tac Toe game—powered by AI. In this project, I explored the use of **OpenAI's GPT model** as a second player, allowing a human to enjoy a multiplayer-like experience even when playing solo.
+
+#### 🔧 How It Works
+
+1. A standard single-player Tic Tac Toe game is created in Unity.
+2. Each time it's the AI's turn, the current board state is sent to OpenAI’s Chat API.
+3. The AI responds with the best move to make based on the current game condition.
+4. The game processes this response and updates the board accordingly.
+
+#### ✅ Highlights
+
+- 🤖 **AI as Opponent** — No need for a second human player.
+- 🧠 **Strategic Play** — AI makes decisions based on real-time board conditions.
+- 💬 **Generative Reasoning** — Uses OpenAI's GPT model for move selection.
+- 🕹️ **Seamless Integration** — Easily works within the Unity environment.
+
+#### 📽️ Try-out
+
+Want to try it? Clone the repo, set your API key, and start a game—see how GPT plays against you!
+
 ### 🎮 Draw Dash
 
 Draw Dash is a mini-game where the AI gives you a random drawing challenge and a countdown timer. After the timer runs out (or you submit early), the AI analyzes your drawing and gives you a score.
